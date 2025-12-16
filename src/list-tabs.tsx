@@ -67,7 +67,16 @@ async function fetchTabs(): Promise<Tab[]> {
 
 export default function Command() {
   const { isLoading, data: tabs, revalidate } = useCachedPromise(fetchTabs, [], {
-    onError: () => {},
+    onError: (error) => {
+      if (error.message.includes("Zed not focused")) {
+        return;
+      }
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to list tabs",
+        message: error.message,
+      });
+    },
   });
 
   async function handleSwitchTab(tab: Tab) {
