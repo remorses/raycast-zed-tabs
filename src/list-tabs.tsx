@@ -1,5 +1,8 @@
-import { Action, ActionPanel, List, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, showToast, Toast } from "@raycast/api";
 import { runAppleScript, useCachedPromise } from "@raycast/utils";
+import ColorHash from "color-hash";
+
+const colorHash = new ColorHash();
 
 const LIST_TABS_SCRIPT = `
 tell application "System Events"
@@ -85,6 +88,7 @@ export default function Command() {
           key={index}
           title={tab.project}
           subtitle={tab.file ?? undefined}
+          icon={{ source: Icon.CircleFilled, tintColor: colorHash.hex(tab.project) }}
           actions={
             <ActionPanel>
               <Action title="Switch to Tab" onAction={() => handleSwitchTab(tab)} />

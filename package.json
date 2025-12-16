@@ -16,10 +16,12 @@
   ],
   "dependencies": {
     "@raycast/api": "^1.87.0",
-    "@raycast/utils": "^1.17.0"
+    "@raycast/utils": "^1.17.0",
+    "color-hash": "^2.0.2"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.11",
+    "@types/color-hash": "^2.0.0",
     "@types/node": "20.8.10",
     "@types/react": "18.2.27",
     "eslint": "^8.57.0",
