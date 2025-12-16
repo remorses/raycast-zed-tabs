@@ -88,7 +88,7 @@ export default function Command() {
           key={index}
           title={tab.project}
           subtitle={tab.file ?? undefined}
-          icon={{ source: Icon.CircleFilled, tintColor: colorHash.hex(tab.project) }}
+          icon={{ source: Icon.Dot, tintColor: colorHash.hex(tab.project) }}
           actions={
             <ActionPanel>
               <Action title="Switch to Tab" onAction={() => handleSwitchTab(tab)} />
