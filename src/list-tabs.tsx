@@ -1,6 +1,21 @@
-import { Action, ActionPanel, Icon, List, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Cache, closeMainWindow, Icon, List, showToast, Toast } from "@raycast/api";
+import { useState } from "react";
 import { runAppleScript, useCachedPromise } from "@raycast/utils";
 import ColorHash from "color-hash";
+
+const cache = new Cache();
+const LAST_FOCUSED_KEY = "lastFocusedTimes";
+
+function getLastFocusedTimes(): Record<string, number> {
+  const data = cache.get(LAST_FOCUSED_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+function setLastFocusedTime(tabName: string) {
+  const times = getLastFocusedTimes();
+  times[tabName] = Date.now();
+  cache.set(LAST_FOCUSED_KEY, JSON.stringify(times));
+}
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
@@ -65,7 +80,17 @@ async function fetchTabs(): Promise<Tab[]> {
   return entries.map(parseTabEntry);
 }
 
+function sortTabsByLastFocused(tabs: Tab[]): Tab[] {
+  const lastFocusedTimes = getLastFocusedTimes();
+  return [...tabs].sort((a, b) => {
+    const timeA = lastFocusedTimes[a.name] ?? 0;
+    const timeB = lastFocusedTimes[b.name] ?? 0;
+    return timeB - timeA;
+  });
+}
+
 export default function Command() {
+  const [, forceRender] = useState(0);
   const { isLoading, data: tabs, revalidate } = useCachedPromise(fetchTabs, [], {
     onError: (error) => {
       if (error.message.includes("Zed not focused")) {
@@ -78,10 +103,14 @@ export default function Command() {
       });
     },
   });
+  const sortedTabs = tabs ? sortTabsByLastFocused(tabs) : [];
 
   async function handleSwitchTab(tab: Tab) {
     try {
       await runAppleScript(switchToTabScript(tab.menuIndex));
+      setLastFocusedTime(tab.name);
+      forceRender((n) => n + 1);
+      await closeMainWindow();
     } catch (error) {
       showToast({
         style: Toast.Style.Failure,
@@ -93,9 +122,9 @@ export default function Command() {
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Search Zed tabs...">
-      {tabs?.map((tab, index) => (
+      {sortedTabs.map((tab) => (
         <List.Item
-          key={index}
+          key={tab.menuIndex}
           title={tab.project}
           subtitle={tab.file ?? undefined}
           icon={{ source: Icon.Dot, tintColor: colorHash.hex(tab.project) }}
