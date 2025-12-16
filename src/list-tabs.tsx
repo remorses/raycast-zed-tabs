@@ -5,8 +5,6 @@ import ColorHash from "color-hash";
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
 const LIST_TABS_SCRIPT = `
-tell application "Zed" to activate
-delay 0.1
 tell application "System Events"
   tell process "Zed"
     set theMenu to menu 1 of menu bar item "Window" of menu bar 1
@@ -61,11 +59,16 @@ function parseTabEntry(entry: string): Tab {
 async function fetchTabs(): Promise<Tab[]> {
   const result = await runAppleScript(LIST_TABS_SCRIPT);
   const entries = result.split("|||").filter(Boolean);
+  if (entries.length === 0) {
+    throw new Error("Zed not focused - using cached tabs");
+  }
   return entries.map(parseTabEntry);
 }
 
 export default function Command() {
-  const { isLoading, data: tabs, revalidate } = useCachedPromise(fetchTabs);
+  const { isLoading, data: tabs, revalidate } = useCachedPromise(fetchTabs, [], {
+    onError: () => {},
+  });
 
   async function handleSwitchTab(tab: Tab) {
     try {
