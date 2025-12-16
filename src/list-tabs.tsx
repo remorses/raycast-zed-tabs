@@ -5,6 +5,8 @@ import ColorHash from "color-hash";
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
 const LIST_TABS_SCRIPT = `
+tell application "Zed" to activate
+delay 0.1
 tell application "System Events"
   tell process "Zed"
     set theMenu to menu 1 of menu bar item "Window" of menu bar 1
